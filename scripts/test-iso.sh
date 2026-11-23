@@ -33,6 +33,7 @@ qemu-system-x86_64 -machine q35,smm=on -accel tcg,thread=multi -cpu max -smp 2 -
     -drive "if=none,id=witness,format=raw,file=$work/witness.img" \
     -device virtio-blk-pci,drive=witness,bootindex=2 \
     -fw_cfg name=opt/org.sillage.ci,string=1 \
+    -qmp "unix:$work/monitor.sock,server=on,wait=off" \
     -display none -vga std -serial "file:$log" -nic none -no-reboot \
     > "$log.qemu" 2>&1 &
 vm_pid=$!
@@ -49,6 +50,31 @@ for ((attempt=0; attempt<150; attempt++)); do
     if grep -q SILLAGE_CI_FAILED "$log" || ! kill -0 "$vm_pid" 2>/dev/null; then break; fi
     sleep 3
 done
+if [[ -S $work/monitor.sock ]]; then
+    python3 - "$work/monitor.sock" "$log.ppm" <<'PY' || true
+import json
+import socket
+import sys
+
+with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as monitor:
+    monitor.settimeout(4)
+    monitor.connect(sys.argv[1])
+    with monitor.makefile('rwb') as channel:
+        channel.readline()
+        for command in (
+            {'execute': 'qmp_capabilities'},
+            {'execute': 'screendump', 'arguments': {'filename': sys.argv[2]}},
+        ):
+            channel.write((json.dumps(command) + '\n').encode())
+            channel.flush()
+            while line := channel.readline():
+                result = json.loads(line)
+                if 'error' in result:
+                    raise RuntimeError(result['error'])
+                if 'return' in result:
+                    break
+PY
+fi
 cat "$log.qemu" "$log" >&2
 echo 'Le démarrage USB UEFI protégé n’a pas été validé.' >&2
 exit 1

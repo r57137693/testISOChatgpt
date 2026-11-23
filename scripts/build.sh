@@ -21,7 +21,11 @@ snapshot=${SILLAGE_SNAPSHOT:-$DEFAULT_APT_SNAPSHOT}
 export SILLAGE_BUILD_SNAPSHOT="$snapshot"
 
 output=$(realpath -m -- "${1:-$repo/dist}")
-mkdir -p -- "$output"
+if [[ ! -d $output && -n ${SUDO_UID:-} && -n ${SUDO_GID:-} ]]; then
+    install -d -o "$SUDO_UID" -g "$SUDO_GID" -- "$output"
+else
+    mkdir -p -- "$output"
+fi
 work=$(mktemp -d "${SILLAGE_WORKDIR:-/var/tmp}/sillage.XXXXXXXX")
 trap 'rm -rf -- "$work"' EXIT
 trap 'echo "Échec du build à la ligne $LINENO (état $?)." >&2' ERR
