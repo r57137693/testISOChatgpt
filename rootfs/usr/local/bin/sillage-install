@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+if ! /usr/lib/sillage/calamares-visible; then
+    printf '%s\n' 'Redémarre en UEFI avec l’entrée Installer Sillage pour ouvrir Calamares.' >&2
+    exit 1
+fi
+
+exec sudo -n --preserve-env=DISPLAY,XAUTHORITY,LANG,LC_ALL /usr/bin/calamares

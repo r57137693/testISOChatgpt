@@ -1,0 +1,11 @@
+[Unit]
+Description=Configurer la session live Xfce
+ConditionKernelCommandLine=boot=casper
+Before=lightdm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/sillage/live-session
+
+[Install]
+WantedBy=lightdm.service

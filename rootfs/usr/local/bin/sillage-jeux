@@ -1,0 +1,42 @@
+#!/bin/sh
+set -eu
+
+case "${1:-menu}" in
+    minecraft) app=org.prismlauncher.PrismLauncher ;;
+    epic) app=com.heroicgameslauncher.hgl ;;
+    steam) app=com.valvesoftware.Steam ;;
+    menu)
+        printf '%s\n' '1. Minecraft Java (Prism Launcher)' '2. Rocket League (Epic / Heroic)' '3. Rocket League (Steam)' '0. Fermer'
+        printf 'Ton choix [0-3] : '
+        read -r selection
+        case "$selection" in
+            1) exec "$0" minecraft ;;
+            2) exec "$0" epic ;;
+            3) exec "$0" steam ;;
+            0|'') exit 0 ;;
+            *) exit 2 ;;
+        esac
+        ;;
+    *) printf 'Client inconnu : %s\n' "$1" >&2; exit 2 ;;
+esac
+
+gpu=${2:-nvidia}
+case "$gpu" in intel|nvidia) ;; *) echo 'Choisir intel ou nvidia.' >&2; exit 2 ;; esac
+if [ "$gpu" = nvidia ] && [ ! -r /sys/module/nvidia/version ]; then
+    echo 'Le module NVIDIA est absent. Lance sillage-diagnostic ou choisis intel.' >&2
+    exit 1
+fi
+
+if ! flatpak info --user "$app" >/dev/null 2>&1 && ! flatpak info --system "$app" >/dev/null 2>&1; then
+    printf 'Installer %s depuis Flathub dans ton compte ? [o/N] ' "$app"
+    read -r answer
+    case "$answer" in o|O|oui|Oui) ;; *) exit 0 ;; esac
+    flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    flatpak install --user flathub "$app"
+fi
+
+if [ "$gpu" = intel ]; then
+    exec flatpak run "$app"
+fi
+exec flatpak run --env=__NV_PRIME_RENDER_OFFLOAD=1 --env=__GLX_VENDOR_LIBRARY_NAME=nvidia \
+    --env=__VK_LAYER_NV_optimus=NVIDIA_only "$app"

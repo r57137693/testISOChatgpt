@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+state_dir=${XDG_STATE_HOME:-"$HOME/.local/state"}/sillage
+[ ! -e "$state_dir/wallpaper-set" ] || exit 0
+wallpaper=/usr/share/backgrounds/sillage/jura.svg
+
+for attempt in 1 2 3 4 5 6; do
+    properties=$(xfconf-query -c xfce4-desktop -l | sed -n '/^\/backdrop\/screen.*\/last-image$/p')
+    if [ -n "$properties" ]; then
+        printf '%s\n' "$properties" | while IFS= read -r path; do
+            xfconf-query -c xfce4-desktop -p "$path" -s "$wallpaper"
+        done
+        mkdir -p "$state_dir"
+        touch "$state_dir/wallpaper-set"
+        exit 0
+    fi
+    sleep 1
+done

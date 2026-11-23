@@ -1,0 +1,8 @@
+NAME="Sillage"
+PRETTY_NAME="Sillage 0.1 (Ubuntu 26.04 LTS)"
+ID=sillage
+ID_LIKE="ubuntu debian"
+VERSION="0.1.0"
+VERSION_ID="0.1.0"
+VERSION_CODENAME=resolute
+UBUNTU_CODENAME=resolute

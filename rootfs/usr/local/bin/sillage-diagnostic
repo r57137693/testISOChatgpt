@@ -1,0 +1,18 @@
+#!/bin/sh
+set -u
+
+printf '\nSystème\n'
+cat /etc/sillage-release
+uname -r
+printf '\nRéseau et graphiques PCI\n'
+lspci -nnk | grep -A3 -Ei 'VGA|3D controller|Ethernet|Network controller'
+printf '\nDisques et échanges\n'
+lsblk -o NAME,SIZE,RO,TRAN,MOUNTPOINTS
+swapon --show
+zramctl
+printf '\nRendu X11\n'
+glxinfo -B 2>/dev/null | grep -E 'OpenGL (vendor|renderer) string' || true
+if [ "${1:-}" = --nvidia ]; then
+    nvidia-smi
+    __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia glxinfo -B
+fi

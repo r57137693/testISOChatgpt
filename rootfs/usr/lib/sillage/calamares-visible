@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+read -r cmdline < /proc/cmdline
+case " $cmdline " in *' boot=casper '*) ;; *) exit 1 ;; esac
+case " $cmdline " in *' sillage_protect=1 '*) exit 1 ;; esac
+case " $cmdline " in *' sillage_install=1 '*) ;; *) exit 1 ;; esac
+test -d /sys/firmware/efi

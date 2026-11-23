@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Installer Sillage
+Comment=Ouvrir l’installateur graphique
+Exec=sillage-install
+TryExec=/usr/bin/calamares
+Icon=sillage
+Terminal=false
+Categories=System;

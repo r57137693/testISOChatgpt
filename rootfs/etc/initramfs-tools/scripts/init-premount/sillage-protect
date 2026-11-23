@@ -1,0 +1,24 @@
+#!/bin/sh
+
+if [ "${1:-}" = prereqs ]; then
+    exit 0
+fi
+
+case " $(cat /proc/cmdline) " in *' boot=casper '*) ;; *) exit 0 ;; esac
+case " $(cat /proc/cmdline) " in *' sillage_protect=1 '*) ;; *) exit 0 ;; esac
+
+. /scripts/functions
+stop_protected_boot() {
+    panic "$*"
+    while :; do sleep 60; done
+}
+
+udevadm settle --timeout=20 || stop_protected_boot 'Sillage : détection des disques incomplète.'
+for device in /sys/class/block/*; do
+    [ -e "$device" ] || continue
+    name=${device##*/}
+    case "$name" in loop*|ram*|zram*|sr*) continue ;; esac
+    [ -b "/dev/$name" ] || stop_protected_boot "Sillage : périphérique manquant ($name)."
+    /usr/sbin/blockdev --setro "/dev/$name" || stop_protected_boot "Sillage : lecture seule impossible ($name)."
+    [ "$(cat "$device/ro")" = 1 ] || stop_protected_boot "Sillage : le disque $name reste accessible en écriture."
+done

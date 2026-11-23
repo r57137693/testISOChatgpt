@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+read -r cmdline < /proc/cmdline
+case " $cmdline " in *' boot=casper '*) ;; *) exit 0 ;; esac
+case " $cmdline " in
+    *' sillage_protect=1 '*)
+        notify-send --app-name=Sillage --icon=sillage 'Essayer Sillage' 'Les disques de stockage sont en lecture seule.'
+        ;;
+    *' sillage_install=1 '*)
+        if /usr/lib/sillage/calamares-visible; then
+            notify-send --app-name=Sillage --icon=sillage 'Installer Sillage' 'Ouvre « Installer Sillage » dans le menu des applications pour commencer.'
+        fi
+        ;;
+esac

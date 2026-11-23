@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+if [ "${1:-}" = prereqs ]; then
+    exit 0
+fi
+
+. /usr/share/initramfs-tools/hook-functions
+copy_exec "$(command -v blockdev)" /usr/sbin/blockdev
+mkdir -p "$DESTDIR/etc/udev/rules.d"
+cp /etc/udev/rules.d/61-sillage-live-disks.rules "$DESTDIR/etc/udev/rules.d/"

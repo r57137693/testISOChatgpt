@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+Name=Jeux sur NVIDIA
+Comment=Installer et lancer des jeux sur la GTX 950M
+Exec=xfce4-terminal --hold -x sillage-jeux menu
+Icon=sillage
+Terminal=false
+Categories=Game;
+Actions=Minecraft;Epic;Steam;
+
+[Desktop Action Minecraft]
+Name=Minecraft Java sur NVIDIA
+Exec=xfce4-terminal --hold -x sillage-jeux minecraft
+
+[Desktop Action Epic]
+Name=Rocket League (Epic)
+Exec=xfce4-terminal --hold -x sillage-jeux epic
+
+[Desktop Action Steam]
+Name=Rocket League (Steam)
+Exec=xfce4-terminal --hold -x sillage-jeux steam

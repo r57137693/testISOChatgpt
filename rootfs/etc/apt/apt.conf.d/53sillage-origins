@@ -1,0 +1,6 @@
+Unattended-Upgrade::Origins-Pattern {
+    "origin=Ubuntu,archive=resolute";
+    "origin=Ubuntu,archive=resolute-updates";
+    "origin=Ubuntu,archive=resolute-security";
+    "site=packages.mozilla.org";
+};

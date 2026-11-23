@@ -1,0 +1,59 @@
+name: Construire Sillage
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-sillage.yml
+      - config/**
+      - rootfs/**
+      - scripts/**
+      - tools/**
+  workflow_dispatch:
+    inputs:
+      snapshot:
+        description: Instantané APT UTC facultatif, au format AAAAMMJJThhmmssZ ou current
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  iso:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 55
+    permissions:
+      contents: write
+    steps:
+      - name: Récupérer les sources
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Installer les outils Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends mmdebstrap ubuntu-keyring xorriso squashfs-tools \
+            curl gpg grub-common kmod initramfs-tools-core qemu-system-x86 ovmf fdisk desktop-file-utils \
+            python3-yaml e2fsprogs zstd
+          df -h /var/tmp "$GITHUB_WORKSPACE"
+      - name: Valider les scripts et la configuration
+        run: bash scripts/check-source.sh
+      - name: Construire l’ISO hybride
+        env:
+          SILLAGE_SNAPSHOT: ${{ inputs.snapshot }}
+        run: sudo --preserve-env=SILLAGE_SNAPSHOT bash scripts/build.sh
+      - name: Tester le démarrage USB avec Secure Boot et un disque témoin
+        run: bash scripts/test-iso.sh dist/sillage-*-amd64.iso
+      - name: Déposer l’ISO dans un brouillon de version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/attach-iso.sh
+      - name: Joindre les journaux de la VM
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Sillage-journaux-UEFI
+          path: dist/uefi-boot.log*
+          if-no-files-found: ignore
+          retention-days: 7
