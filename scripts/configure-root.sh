@@ -3,7 +3,18 @@ set -Eeuo pipefail
 
 root=$1
 repo=$SILLAGE_REPO
+vendor_network_config="$root/usr/lib/NetworkManager/conf.d/10-globally-managed-devices.conf"
+if [[ -f $vendor_network_config ]]; then
+    printf 'NetworkManager Ubuntu (%s)\n' "${vendor_network_config#"$root"}"
+    grep -E '^[[:space:]]*unmanaged-devices[[:space:]]*=' "$vendor_network_config" || true
+fi
 cp -a "$repo/rootfs/." "$root/"
+network_config=$(chroot "$root" NetworkManager --print-config)
+printf '%s\n' "$network_config" | grep -E '^\[keyfile\]|^unmanaged-devices[[:space:]]*=' || true
+if grep -Eq '^unmanaged-devices[[:space:]]*=[[:space:]]*[^[:space:]]' <<< "$network_config"; then
+    echo 'La configuration effective de NetworkManager contient encore une exclusion globale.' >&2
+    exit 1
+fi
 install -m 0644 "$repo/rootfs/usr/share/icons/hicolor/scalable/apps/sillage.svg" \
     "$root/etc/calamares/branding/sillage/sillage.svg"
 install -m 0644 "$repo/config/mozilla.sources" "$root/etc/apt/sources.list.d/mozilla.sources"
@@ -21,6 +32,7 @@ chmod 0644 "$mozilla_key"
 chroot "$root" env -u APT_CONFIG apt-get -o Dir::Etc::sourcelist=sources.list.d/mozilla.sources -o Dir::Etc::sourceparts=- \
     -o APT::Get::List-Cleanup=0 update
 chroot "$root" env -u APT_CONFIG apt-get -y --no-install-recommends install firefox firefox-l10n-fr
+rm -f "$root/etc/dpkg/dpkg.cfg.d/99sillage-staging-io"
 chroot "$root" env -u APT_CONFIG apt-get clean
 find "$root/etc/apt/sources.list.d" -maxdepth 1 -type f ! -name 'mozilla.sources' -delete
 rm -f "$root/etc/apt/sources.list"

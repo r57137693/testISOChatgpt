@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+export LC_ALL=C
 
 modprobe qemu_fw_cfg 2>/dev/null || exit 0
 marker=/sys/firmware/qemu_fw_cfg/by_name/opt/org.sillage.ci/raw
@@ -23,6 +24,25 @@ if /usr/lib/sillage/calamares-visible; then
     echo 'Calamares est accessible en mode Essayer.'
     exit 1
 fi
+if ! nm-online --quiet --timeout=45; then
+    echo 'NetworkManager n’a pas établi de connexion automatique pendant le démarrage.'
+    nmcli -f GENERAL.DEVICE,GENERAL.STATE,GENERAL.REASON device show || true
+    exit 1
+fi
+ethernet=$(nmcli -t -f DEVICE,TYPE,STATE device status | awk -F: '$2 == "ethernet" && $3 == "connected" {print $1; exit}')
+test -n "$ethernet"
+ipv4=$(nmcli -g IP4.ADDRESS device show "$ethernet" | head -n 1)
+gateway=$(ip -4 route show default dev "$ethernet")
+lease=$(nmcli -g DHCP4.OPTION device show "$ethernet")
+printf '%s\n' "$lease" | grep -q 'dhcp_server_identifier[[:space:]]*='
+test -n "$ipv4" && test -n "$gateway"
+printf 'Ethernet NAT : %s a obtenu %s par DHCP\nRoute IPv4 : %s\n' "$ethernet" "$ipv4" "$gateway"
+http_code=$(curl -4 --fail --silent --show-error --location --retry 2 --retry-max-time 45 \
+    --connect-timeout 8 --max-time 15 --output /dev/null --write-out '%{http_code}' \
+    https://archive.ubuntu.com/ubuntu/dists/resolute/InRelease)
+test "$http_code" = 200
+printf 'Accès Internet depuis la VM : DNS et HTTPS Ubuntu (HTTP %s)\n' "$http_code"
+
 for attempt in $(seq 1 90); do
     if pgrep -x xfce4-session >/dev/null && pgrep -x xfce4-panel >/dev/null; then
         trap - EXIT

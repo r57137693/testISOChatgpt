@@ -1,12 +1,12 @@
-# Sillage 0.1.0
+# Sillage 0.1.1
 
 Sillage est une image live et installable d’Ubuntu 26.04 LTS avec Xfce sous X11 pour l’ASUS X756UXM. Le bureau est conçu pour l’Intel HD 520. Le pilote NVIDIA 580 signé et PRIME permettent de sélectionner la GTX 950M pour les jeux. Le bureau graphite et le fond inspiré du Jura sont inclus dans la session live et dans le système installé.
 
-Cette version est un premier candidat. Le workflow teste le démarrage UEFI Secure Boot en VM, l’ouverture du bureau et la protection d’un disque témoin. L’installation Calamares et les essais sur l’ASUS sont des contrôles manuels.
+Cette version corrige la gestion automatique de l’Ethernet. Le workflow utilise QEMU avec une carte Intel PRO/1000 et un réseau NAT. Il vérifie le démarrage UEFI Secure Boot, l’ouverture du bureau, l’obtention d’une adresse IPv4 par DHCP et l’accès HTTPS à Internet. Il contrôle aussi que le disque témoin reste intact. L’installation Calamares et les essais sur l’ASUS sont des contrôles manuels.
 
 ## Construire avec GitHub depuis Windows
 
-1. Décompresse `Sillage-sources-0.1.0.zip`. Dans le dossier `sillage`, tu dois voir `README.md`, `config`, `scripts`, `rootfs` et `.github`.
+1. Télécharge les sources du dépôt et décompresse-les. Dans le dossier du projet, tu dois voir `README.md`, `config`, `scripts`, `rootfs` et `.github`.
 2. Sur [GitHub](https://github.com/new), crée un dépôt **privé** nommé `sillage`. Laisse les options README, `.gitignore` et licence décochées. Copie l’adresse HTTPS du dépôt.
 3. Ouvre PowerShell dans le dossier `sillage`. Si `git --version` échoue, installe Git avec `winget install --id Git.Git --exact`, puis rouvre PowerShell.
 4. Exécute ces commandes. Remplace l’adresse d’exemple par celle de ton dépôt. Si Git réclame ton nom et ton e-mail, utilise les commandes qu’il affiche, puis relance le commit. La première connexion peut ouvrir GitHub dans ton navigateur.
@@ -27,12 +27,12 @@ GitHub limite chaque fichier d’une version à 2 Gio. Si l’image dépasse cet
 Pour vérifier une ISO téléchargée en un fichier, ouvre le `.sha256` dans le Bloc-notes et compare le code avec la sortie de cette commande.
 
 ```powershell
-Get-FileHash -Algorithm SHA256 .\sillage-0.1.0-amd64.iso
+Get-FileHash -Algorithm SHA256 .\sillage-0.1.1-amd64.iso
 ```
 
 ## Premier test en machine virtuelle
 
-Dans VirtualBox, crée une VM Ubuntu 64 bits avec **2 processeurs, 4 Go de RAM et un disque virtuel de 30 Go**. Active **UEFI** avant le premier démarrage et attache l’ISO au lecteur optique virtuel. Le workflow fournit un contrôle Secure Boot séparé via QEMU. Garde les disques physiques hors de la configuration de la VM.
+Dans VirtualBox, crée une VM Ubuntu 64 bits avec **2 processeurs, 4 Go de RAM et un disque virtuel de 30 Go**. Active **UEFI** avant le premier démarrage et attache l’ISO au lecteur optique virtuel. Dans **Réseau → Adaptateur 1**, sélectionne **NAT** et vérifie que le câble virtuel est connecté. Le workflow fournit un contrôle Secure Boot séparé via QEMU. Garde les disques physiques hors de la configuration de la VM.
 
 1. Démarre **Essayer Sillage**. Vérifie que le bureau s’ouvre. Lance `sillage-diagnostic` dans un terminal. Le disque virtuel doit apparaître avec `RO=1`, et le système doit afficher `zram0`.
 2. Redémarre sur l’ISO et choisis **Installer Sillage**. Une fois sur le bureau, cherche **Installer Sillage** dans le menu et sélectionne le disque **virtuel**. Termine l’installation, retire l’ISO du lecteur virtuel et redémarre. L’entrée UEFI peut s’appeler `ubuntu` à cause du chemin utilisé par GRUB signé. Vérifie que ton compte peut ouvrir la session et que `sillage-diagnostic` affiche le noyau, zram et le fichier d’échange.
@@ -61,7 +61,7 @@ sudo apt-get install mmdebstrap ubuntu-keyring xorriso squashfs-tools curl gpg g
   kmod initramfs-tools-core qemu-system-x86 ovmf fdisk e2fsprogs desktop-file-utils python3-yaml zstd
 bash scripts/check-source.sh
 sudo bash scripts/build.sh
-bash scripts/test-iso.sh dist/sillage-0.1.0-amd64.iso
+bash scripts/test-iso.sh dist/sillage-0.1.1-amd64.iso
 ```
 
 `config/release.env` fixe l’instantané Ubuntu et l’image officielle Lubuntu 26.04.1 utilisée uniquement comme gabarit de démarrage signé. Le build assemble son propre système depuis les paquets, reconstruit l’initramfs et remplace le système live. Firefox provient du dépôt signé de Mozilla et sa version résolue figure dans `filesystem.manifest`. Un build refait avec le même instantané Ubuntu peut embarquer une version différente de Firefox. Le projet fournit le manifeste et la recette de construction, sans promettre deux ISO identiques octet pour octet.

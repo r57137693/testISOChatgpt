@@ -62,6 +62,7 @@ echo '==> Construction du système Ubuntu et du bureau Sillage'
 packages=$(tr '\n' ' ' < "$repo/config/packages.txt" | xargs | tr ' ' ',')
 mmdebstrap --mode=root --format=directory --variant=minbase --architectures=amd64 \
     --aptopt='Acquire::Retries "3"' --include="$packages" \
+    --essential-hook='install -d "$1/etc/dpkg/dpkg.cfg.d" && printf "%s\n" force-unsafe-io > "$1/etc/dpkg/dpkg.cfg.d/99sillage-staging-io"' \
     --customize-hook='bash "$SILLAGE_REPO/scripts/configure-root.sh" "$1"' \
     "$UBUNTU_SUITE" "$root" "$work/build.sources"
 

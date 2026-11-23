@@ -1,4 +1,4 @@
-ubuntu-keyring ca-certificates sudo locales language-pack-fr tzdata bash-completion
+ubuntu-keyring ca-certificates curl sudo locales language-pack-fr tzdata bash-completion
 systemd-sysv systemd-resolved systemd-zram-generator dbus-user-session
 linux-generic linux-firmware intel-microcode initramfs-tools busybox-initramfs casper
 linux-modules-nvidia-580-generic nvidia-driver-580 nvidia-prime nvidia-settings

@@ -57,7 +57,7 @@ jobs:
         with:
           path: dist
           key: ${{ steps.image-cache.outputs.cache-primary-key }}
-      - name: Tester le démarrage USB avec Secure Boot et un disque témoin
+      - name: Tester Secure Boot, DHCP en NAT, Internet et la protection des disques
         run: |
           (cd dist && sha256sum -c ./*.iso.sha256)
           bash scripts/test-iso.sh dist/sillage-*-amd64.iso

@@ -2,12 +2,12 @@
 Description=Vérification du démarrage live de Sillage en CI
 ConditionVirtualization=vm
 ConditionKernelCommandLine=sillage_protect=1
-After=display-manager.service
+After=display-manager.service NetworkManager.service
 
 [Service]
 Type=oneshot
 ExecStart=/usr/lib/sillage/ci-live-check
-TimeoutStartSec=200
+TimeoutStartSec=300
 
 [Install]
 WantedBy=multi-user.target

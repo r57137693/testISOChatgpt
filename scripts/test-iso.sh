@@ -34,7 +34,7 @@ qemu-system-x86_64 -machine q35,smm=on -accel tcg,thread=multi -cpu max -smp 2 -
     -device virtio-blk-pci,drive=witness,bootindex=2 \
     -fw_cfg name=opt/org.sillage.ci,string=1 \
     -qmp "unix:$work/monitor.sock,server=on,wait=off" \
-    -display none -vga std -serial "file:$log" -nic none -no-reboot \
+    -display none -vga std -serial "file:$log" -nic user,model=e1000 -no-reboot \
     > "$log.qemu" 2>&1 &
 vm_pid=$!
 

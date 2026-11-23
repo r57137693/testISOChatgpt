@@ -19,6 +19,6 @@ fi
 
 url=$(gh release create "$tag" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
     --title "Sillage $SILLAGE_VERSION — essai $GITHUB_RUN_NUMBER" \
-    --notes 'Démarrage live UEFI validé en VM. Utiliser le mode « Essayer » sur l’ASUS.' \
+    --notes 'Session live validée en VM avec Secure Boot, DHCP en NAT, accès HTTPS et disque témoin en lecture seule. Utiliser le mode « Essayer » sur l’ASUS.' \
     "${files[@]}")
 printf '\n[Télécharger Sillage dans les pièces jointes du brouillon](%s)\n' "$url" >> "$GITHUB_STEP_SUMMARY"

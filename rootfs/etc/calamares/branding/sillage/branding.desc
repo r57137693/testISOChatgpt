@@ -4,9 +4,9 @@ welcomeStyleCalamares: true
 strings:
   productName: Sillage
   shortProductName: Sillage
-  version: 0.1.0
+  version: 0.1.1
   shortVersion: "0.1"
-  versionedName: Sillage 0.1.0
+  versionedName: Sillage 0.1.1
   shortVersionedName: Sillage 0.1
   bootloaderEntryName: Sillage
   productUrl: https://www.ubuntu.com/
